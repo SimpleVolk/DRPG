@@ -17,8 +17,11 @@ namespace DRPG.Battle
         [SerializeField] private DiceDefinition playerDiceDefinition;
 
         private BattleEngine _engine;
+        private BattleSnapshot _currentSnapshot;
 
         public event Action<BattleSnapshot> SnapshotUpdated;
+
+        public BattleSnapshot CurrentSnapshot => _currentSnapshot;
 
         private void Awake()
         {
@@ -26,13 +29,18 @@ namespace DRPG.Battle
 
             if (startOnAwake)
             {
-                StartBattle(CreateDefaultBattleContext());
+                StartDefaultBattle();
             }
         }
 
         public void StartBattle(BattleContext context)
         {
             PublishSnapshot(_engine.StartBattle(context));
+        }
+
+        public void StartDefaultBattle()
+        {
+            StartBattle(CreateDefaultBattleContext());
         }
 
         public void RollButtonPressed()
@@ -54,6 +62,7 @@ namespace DRPG.Battle
 
         private void PublishSnapshot(BattleSnapshot snapshot)
         {
+            _currentSnapshot = snapshot;
             SnapshotUpdated?.Invoke(snapshot);
         }
     }
