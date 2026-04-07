@@ -26,33 +26,35 @@ namespace DRPG.Battle
 
             if (startOnAwake)
             {
-                StartBattle(CreateDefaultContext());
+                StartBattle(CreateDefaultBattleContext());
             }
         }
 
         public void StartBattle(BattleContext context)
         {
-            var snapshot = _engine.StartBattle(context);
-            SnapshotUpdated?.Invoke(snapshot);
+            PublishSnapshot(_engine.StartBattle(context));
         }
 
         public void RollButtonPressed()
         {
-            var snapshot = _engine.RollPlayerDice();
-            SnapshotUpdated?.Invoke(snapshot);
+            PublishSnapshot(_engine.RollPlayerDice());
         }
 
         public void StopButtonPressed()
         {
-            var snapshot = _engine.StopPlayerTurn();
-            SnapshotUpdated?.Invoke(snapshot);
+            PublishSnapshot(_engine.StopPlayerTurn());
         }
 
-        private BattleContext CreateDefaultContext()
+        private BattleContext CreateDefaultBattleContext()
         {
             var player = new CombatantRuntime("player", playerMaxHp, playerDiceCount);
             var enemy = new CombatantRuntime("enemy", enemyMaxHp, 0);
             return new BattleContext(player, enemy, playerDiceDefinition, enemyAttackDamage);
+        }
+
+        private void PublishSnapshot(BattleSnapshot snapshot)
+        {
+            SnapshotUpdated?.Invoke(snapshot);
         }
     }
 }
