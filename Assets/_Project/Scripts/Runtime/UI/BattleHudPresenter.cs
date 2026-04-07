@@ -6,35 +6,39 @@ namespace DRPG.UI
     public sealed class BattleHudPresenter : MonoBehaviour
     {
         [SerializeField] private BattleController battleController;
-
-        [Header("Debug HUD")]
-        [SerializeField] private string playerHpText;
-        [SerializeField] private string enemyHpText;
-        [SerializeField] private string accumulatedDamageText;
-        [SerializeField] private string lastRollText;
-        [SerializeField] private string bustText;
-
-        public BattleController BattleController => battleController;
+        [SerializeField] private BattleHudView hudView;
 
         private void OnEnable()
         {
             BindController();
+            BindView();
+            RefreshFromCurrentSnapshot();
         }
 
         private void OnDisable()
         {
+            UnbindView();
             UnbindController();
         }
 
         private void HandleSnapshotUpdated(BattleSnapshot snapshot)
         {
-            playerHpText = FormatPlayerHp(snapshot);
-            enemyHpText = FormatEnemyHp(snapshot);
-            accumulatedDamageText = FormatAccumulatedDamage(snapshot);
-            lastRollText = FormatLastRoll(snapshot);
-            bustText = snapshot.IsBust ? "BUST" : "Safe";
+            if (hudView == null)
+            {
+                return;
+            }
 
-            Debug.Log($"{playerHpText} | {enemyHpText} | {accumulatedDamageText} | {lastRollText} | {bustText}");
+            hudView.Render(snapshot);
+        }
+
+        private void HandleRollRequested()
+        {
+            battleController?.RollButtonPressed();
+        }
+
+        private void HandleStopRequested()
+        {
+            battleController?.StopButtonPressed();
         }
 
         private void BindController()
@@ -53,34 +57,30 @@ namespace DRPG.UI
             }
         }
 
-        private static string FormatPlayerHp(BattleSnapshot snapshot)
+        private void BindView()
         {
-            return $"Player HP: {snapshot.PlayerHp}/{snapshot.PlayerMaxHp}";
-        }
-
-        private static string FormatEnemyHp(BattleSnapshot snapshot)
-        {
-            return $"Enemy HP: {snapshot.EnemyHp}/{snapshot.EnemyMaxHp}";
-        }
-
-        private static string FormatAccumulatedDamage(BattleSnapshot snapshot)
-        {
-            return $"Accumulated Damage: {snapshot.AccumulatedDamage}";
-        }
-
-        private static string FormatLastRoll(BattleSnapshot snapshot)
-        {
-            return $"Last Roll: {FormatRollValues(snapshot)}";
-        }
-
-        private static string FormatRollValues(BattleSnapshot snapshot)
-        {
-            if (snapshot.LastRoll?.Values == null || snapshot.LastRoll.Values.Length == 0)
+            if (hudView != null)
             {
-                return "-";
+                hudView.RollRequested += HandleRollRequested;
+                hudView.StopRequested += HandleStopRequested;
             }
+        }
 
-            return string.Join(",", snapshot.LastRoll.Values);
+        private void UnbindView()
+        {
+            if (hudView != null)
+            {
+                hudView.RollRequested -= HandleRollRequested;
+                hudView.StopRequested -= HandleStopRequested;
+            }
+        }
+
+        private void RefreshFromCurrentSnapshot()
+        {
+            if (battleController?.CurrentSnapshot != null)
+            {
+                HandleSnapshotUpdated(battleController.CurrentSnapshot);
+            }
         }
     }
 }
