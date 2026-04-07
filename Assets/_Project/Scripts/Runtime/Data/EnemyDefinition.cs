@@ -7,8 +7,10 @@ namespace DRPG.Data
     {
         [SerializeField] private string displayName = string.Empty;
         [SerializeField] private int baseHp = 8;
+        [SerializeField] private int baseAttackDamage = 2;
 
         public string DisplayName => displayName;
         public int BaseHp => baseHp;
+        public int BaseAttackDamage => baseAttackDamage;
     }
 }
